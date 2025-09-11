@@ -15,18 +15,18 @@ if (browser) {
 
     rdt = RadixDappToolkit({
         dAppDefinitionAddress: PUBLIC_DAPP_DEFINITION_ADDRESS,
-        networkId: RadixNetwork.Stokenet,
-        applicationName: 'Lifted Labs',  // CHANGED FROM LIQUIFY
+        networkId: RadixNetwork.Mainnet, // CHANGED TO MAINNET
+        applicationName: 'Lifted Labs',
         applicationVersion: '1.0.0',
-        featureFlags: ['ExperimentalMobileSupport']  // KEEP THIS
+        featureFlags: ['ExperimentalMobileSupport']
     });
 
     // Configure wallet data request
     rdt.walletApi.setRequestData(DataRequestBuilder.accounts().atLeast(1));
     
-    // Set theme and mode - CHANGE THESE TO WHATEVER YOU WANT
-    rdt.buttonApi.setTheme('black');  // options: 'radix-blue', 'black', 'white-with-outline', 'white'
-    rdt.buttonApi.setMode('light');   // options: 'light', 'dark'
+    // Set theme and mode
+    rdt.buttonApi.setTheme('black');
+    rdt.buttonApi.setMode('light');
 
     // Initialize Gateway API Client
     gatewayApi = GatewayApiClient.initialize(rdt.gatewayApi.clientConfig);
