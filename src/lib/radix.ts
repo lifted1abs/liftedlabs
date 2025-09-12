@@ -3,7 +3,6 @@ import { browser } from '$app/environment';
 import { GatewayApiClient } from "@radixdlt/babylon-gateway-api-sdk";
 import { RadixDappToolkit, RadixNetwork, DataRequestBuilder } from "@radixdlt/radix-dapp-toolkit";
 import { GatewayEzMode } from "@rippy/gateway-ez-mode";
-import { PUBLIC_DAPP_DEFINITION_ADDRESS } from '$env/static/public';
 
 // Type declarations for exports
 let rdt: RadixDappToolkit | null = null;
@@ -12,11 +11,13 @@ let ezGateway: GatewayEzMode | null = null;
 
 // Only initialize in browser
 if (browser) {
+    // Using a placeholder dApp definition for now - you'll need to create one
+    const DAPP_DEFINITION_ADDRESS = 'account_rdx129a9wuey40lducsf6yu232zmzk5kscpvnl6fv472r0ja39f3hced69';
 
     rdt = RadixDappToolkit({
-        dAppDefinitionAddress: PUBLIC_DAPP_DEFINITION_ADDRESS,
-        networkId: RadixNetwork.Mainnet, // CHANGED TO MAINNET
-        applicationName: 'Lifted Labs',
+        dAppDefinitionAddress: DAPP_DEFINITION_ADDRESS,
+        networkId: RadixNetwork.Mainnet,
+        applicationName: 'Lifted Labs Arbitrage',
         applicationVersion: '1.0.0',
         featureFlags: ['ExperimentalMobileSupport']
     });
