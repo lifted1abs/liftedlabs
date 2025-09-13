@@ -1,0 +1,119 @@
+# XRD
+# resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrd
+# hUSDC
+# resource_rdx1thxj9m87sn5cc9ehgp9qxp6vzeqxtce90xm5cp33373tclyp4et4gv
+# hUSDT
+# resource_rdx1th4v03gezwgzkuma6p38lnum8ww8t4ds9nvcrkr2p9ft6kxx3kxvhe
+# hETH
+# resource_rdx1th09yvv7tgsrv708ffsgqjjf2mhy84mscmj5jwu4g670fh3e5zgef0
+# hWBTC
+# resource_rdx1t58kkcqdz0mavfz98m98qh9m4jexyl9tacsvlhns6yxs4r6hrm5re5
+		
+# Ociswap		
+# XRD/hWBTC
+# precision
+# component_rdx1crd7xk0nu07kj60artzz6evws7r6w69lwarf0nqmkxuwwluy5xjud0
+# XRD/hUSDC
+# precision
+# component_rdx1czy2naejcqx8gv46zdsex2syuxrs4jnqzug58e66zr8wglxzvu97qr
+# XRD/hETH
+# precision
+# component_rdx1crumqsy0nu4pl3fwah3nkf8eg8qhltxenk83wh9tzlmr5jnsqs3x4c
+# XRD/hUSDT
+# precision
+# component_rdx1cprwh9r3wx6vvt0gnv8wscwljegzcevp0hzuju2873eza7fgg493fw
+		
+# Defiplaza		
+# XRD/hUSDC
+# component_rdx1cqs6t5t70fcgrva6ws6gs84u29w3kecn6j0zkjg0u0x9szx0xnusxj
+# XRD/hUSDT
+# component_rdx1crz9nv7mvp3lamx3kl4xq8lgwyalvn7rgmlzse2rfs4r9u5sdq0vzh
+# XRD/hETH
+# component_rdx1cq8nefdv75yqkgwqe9rhj436yr3z09du7g797y90prmwf9ugv0m8u2
+# XRD/hWBTC
+# component_rdx1cqy8gd5wk8cq7c4g4gpa2lgulk7tcqj673fgz90cu7fa6x2f9gshaz
+		
+# Caviar		
+# XRD/hUSDC
+# simple
+# component_rdx1cqth4gp6fedux4rrjzk6gu04c24sfnhzrh9t052ufsh7n5ljrslltw
+# XRD/hUSDT
+# simple
+# component_rdx1crj9m0m45cy3a38968n8cs0sg2hvvnyl75x7y6wppg0x4dtf72092e
+# XRD/hETH
+# simple
+# component_rdx1cpwu2rv3p4qqsayk5tc072kw94ygqyusemuqje7udxhgt3253m830q
+# XRD/hWBTC
+# simple
+# component_rdx1cpftfjyyyrca5twzsr557at8uka20ynsn5wucy9pe7sgxnrse24m5h
+
+
+# Defiplaza swapping XRD for hETH
+
+CALL_METHOD
+Address("account_rdx128rdsh2ewks9h880xneh95t8krgl7q03jgam2rpr7hljfhs0zdydv0")
+"withdraw"
+Address("resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrd")
+Decimal("10000")
+;
+TAKE_ALL_FROM_WORKTOP
+Address("resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrd")
+Bucket("bucket_0")
+;
+CALL_METHOD
+Address("component_rdx1cq8nefdv75yqkgwqe9rhj436yr3z09du7g797y90prmwf9ugv0m8u2")
+"swap"
+Bucket("bucket_0")
+;
+CALL_METHOD
+Address("account_rdx128rdsh2ewks9h880xneh95t8krgl7q03jgam2rpr7hljfhs0zdydv0")
+"deposit_batch"
+Expression("ENTIRE_WORKTOP")
+;
+
+
+# Caviar swapping XRD for hUSDC
+
+CALL_METHOD
+Address("account_rdx128rdsh2ewks9h880xneh95t8krgl7q03jgam2rpr7hljfhs0zdydv0")
+"withdraw"
+Address("resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrd")
+Decimal("10000")
+;
+TAKE_ALL_FROM_WORKTOP
+Address("resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrd")
+Bucket("bucket_0")
+;
+CALL_METHOD
+Address("component_rdx1cqth4gp6fedux4rrjzk6gu04c24sfnhzrh9t052ufsh7n5ljrslltw")
+"swap"
+Bucket("bucket_0")
+;
+CALL_METHOD
+Address("account_rdx128rdsh2ewks9h880xneh95t8krgl7q03jgam2rpr7hljfhs0zdydv0")
+"deposit_batch"
+Expression("ENTIRE_WORKTOP")
+;
+
+# Ociswap swapping xrd for hUSDT
+
+CALL_METHOD
+Address("account_rdx128rdsh2ewks9h880xneh95t8krgl7q03jgam2rpr7hljfhs0zdydv0")
+"withdraw"
+Address("resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrd")
+Decimal("10000")
+;
+TAKE_ALL_FROM_WORKTOP
+Address("resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrd")
+Bucket("bucket_0")
+;
+CALL_METHOD
+Address("component_rdx1cprwh9r3wx6vvt0gnv8wscwljegzcevp0hzuju2873eza7fgg493fw")
+"swap"
+Bucket("bucket_0")
+;
+CALL_METHOD
+Address("account_rdx128rdsh2ewks9h880xneh95t8krgl7q03jgam2rpr7hljfhs0zdydv0")
+"deposit_batch"
+Expression("ENTIRE_WORKTOP")
+;
