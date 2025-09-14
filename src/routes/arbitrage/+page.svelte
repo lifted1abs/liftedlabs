@@ -4,58 +4,22 @@
     import { rdt } from '$lib/radix';
     import { fade } from 'svelte/transition';
     
-    // Pool interface
-    interface Pool {
-        address: string;
-        dex: string;
-        token0: string;
-        token1: string;
-        name: string;
-    }
+    // Import from constants
+    import { 
+        XRD, HUSDC, HUSDT, HETH, HWBTC,
+        TOKEN_ICONS, DEX_ICONS, getTokenSymbol
+    } from '$lib/constants/tokens';
     
-    // Token addresses
-    const XRD = 'resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrd';
-    const HUSDC = 'resource_rdx1thxj9m87sn5cc9ehgp9qxp6vzeqxtce90xm5cp33373tclyp4et4gv';
-    const HUSDT = 'resource_rdx1th4v03gezwgzkuma6p38lnum8ww8t4ds9nvcrkr2p9ft6kxx3kxvhe';
-    const HETH = 'resource_rdx1th09yvv7tgsrv708ffsgqjjf2mhy84mscmj5jwu4g670fh3e5zgef0';
-    const HWBTC = 'resource_rdx1t58kkcqdz0mavfz98m98qh9m4jexyl9tacsvlhns6yxs4r6hrm5re5';
+    import {
+        ALL_POOLS, getPoolsByToken, sortPoolsByPrice, truncateAddress,
+        type Pool
+    } from '$lib/constants/pools';
     
-    // Token icons
-    const TOKEN_ICONS: Record<string, string> = {
-        [XRD]: 'https://assets.radixdlt.com/icons/icon-xrd.png',
-        [HUSDC]: 'https://assets.radixdlt.com/icons/hyperlane/hUSDC.svg',
-        [HUSDT]: 'https://assets.radixdlt.com/icons/hyperlane/hUSDT.svg',
-        [HETH]: 'https://assets.radixdlt.com/icons/hyperlane/hETH.svg',
-        [HWBTC]: 'https://assets.radixdlt.com/icons/hyperlane/hBTC.svg'
-    };
-    
-    // DEX icons
-    const DEX_ICONS: Record<string, string> = {
-        'ociswap': 'https://ociswap.com/icons/oci.png',
-        'defiplaza': 'https://radix.defiplaza.net/assets/img/babylon/defiplaza-icon.png',
-        'caviar': 'https://assets.caviarnine.com/tokens/caviar_babylon.png'
-    };
-    
-    // All pools
-    const ALL_POOLS: Pool[] = [
-        // OciSwap Pools
-        { address: 'component_rdx1czy2naejcqx8gv46zdsex2syuxrs4jnqzug58e66zr8wglxzvu97qr', dex: 'ociswap', token0: XRD, token1: HUSDC, name: 'OciSwap XRD/hUSDC' },
-        { address: 'component_rdx1cprwh9r3wx6vvt0gnv8wscwljegzcevp0hzuju2873eza7fgg493fw', dex: 'ociswap', token0: XRD, token1: HUSDT, name: 'OciSwap XRD/hUSDT' },
-        { address: 'component_rdx1crumqsy0nu4pl3fwah3nkf8eg8qhltxenk83wh9tzlmr5jnsqs3x4c', dex: 'ociswap', token0: XRD, token1: HETH, name: 'OciSwap XRD/hETH' },
-        { address: 'component_rdx1crd7xk0nu07kj60artzz6evws7r6w69lwarf0nqmkxuwwluy5xjud0', dex: 'ociswap', token0: XRD, token1: HWBTC, name: 'OciSwap XRD/hWBTC' },
-        
-        // DefiPlaza Pools
-        { address: 'component_rdx1cqs6t5t70fcgrva6ws6gs84u29w3kecn6j0zkjg0u0x9szx0xnusxj', dex: 'defiplaza', token0: XRD, token1: HUSDC, name: 'DefiPlaza XRD/hUSDC' },
-        { address: 'component_rdx1crz9nv7mvp3lamx3kl4xq8lgwyalvn7rgmlzse2rfs4r9u5sdq0vzh', dex: 'defiplaza', token0: XRD, token1: HUSDT, name: 'DefiPlaza XRD/hUSDT' },
-        { address: 'component_rdx1cq8nefdv75yqkgwqe9rhj436yr3z09du7g797y90prmwf9ugv0m8u2', dex: 'defiplaza', token0: XRD, token1: HETH, name: 'DefiPlaza XRD/hETH' },
-        { address: 'component_rdx1cqy8gd5wk8cq7c4g4gpa2lgulk7tcqj673fgz90cu7fa6x2f9gshaz', dex: 'defiplaza', token0: XRD, token1: HWBTC, name: 'DefiPlaza XRD/hWBTC' },
-        
-        // Caviar Pools
-        { address: 'component_rdx1cqth4gp6fedux4rrjzk6gu04c24sfnhzrh9t052ufsh7n5ljrslltw', dex: 'caviar', token0: XRD, token1: HUSDC, name: 'Caviar XRD/hUSDC' },
-        { address: 'component_rdx1crj9m0m45cy3a38968n8cs0sg2hvvnyl75x7y6wppg0x4dtf72092e', dex: 'caviar', token0: XRD, token1: HUSDT, name: 'Caviar XRD/hUSDT' },
-        { address: 'component_rdx1cpwu2rv3p4qqsayk5tc072kw94ygqyusemuqje7udxhgt3253m830q', dex: 'caviar', token0: XRD, token1: HETH, name: 'Caviar XRD/hETH' },
-        { address: 'component_rdx1cpftfjyyyrca5twzsr557at8uka20ynsn5wucy9pe7sgxnrse24m5h', dex: 'caviar', token0: XRD, token1: HWBTC, name: 'Caviar XRD/hWBTC' }
-    ];
+    // Import from ledgerService
+    import {
+        loadPoolPrices, getXrdPrice,
+        buildArbitrageManifest, previewArbitrageTransaction
+    } from '../../services/ledgerService';
     
     // State variables
     let selectedBuyPool: Pool | null = null;
@@ -73,20 +37,11 @@
     $: xrdAmountUsd = xrdAmount * xrdPrice;
     $: xrdReturnedUsd = previewResult ? previewResult.xrdReturned * xrdPrice : 0;
     
-    // Sort pools by price (cheapest to most expensive)
-    function sortPoolsByPrice(pools: Pool[]): Pool[] {
-        return [...pools].sort((a, b) => {
-            const priceA = poolPrices[a.address] || Infinity;
-            const priceB = poolPrices[b.address] || Infinity;
-            return priceA - priceB;
-        });
-    }
-    
-    // Group and sort pools by token pair
-    $: husdcPools = sortPoolsByPrice(ALL_POOLS.filter(p => p.token1 === HUSDC));
-    $: husdtPools = sortPoolsByPrice(ALL_POOLS.filter(p => p.token1 === HUSDT));
-    $: hethPools = sortPoolsByPrice(ALL_POOLS.filter(p => p.token1 === HETH));
-    $: hwbtcPools = sortPoolsByPrice(ALL_POOLS.filter(p => p.token1 === HWBTC));
+    // Group and sort pools by token pair - using the ORIGINAL getPoolsByToken function
+    $: husdcPools = sortPoolsByPrice(getPoolsByToken(HUSDC), poolPrices);
+    $: husdtPools = sortPoolsByPrice(getPoolsByToken(HUSDT), poolPrices);
+    $: hethPools = sortPoolsByPrice(getPoolsByToken(HETH), poolPrices);
+    $: hwbtcPools = sortPoolsByPrice(getPoolsByToken(HWBTC), poolPrices);
     
     // Calculate profit
     $: profit = previewResult?.xrdReturned ? previewResult.xrdReturned - xrdAmount - (previewResult.txFees || 0) : 0;
@@ -97,175 +52,15 @@
         handlePreview();
     }
     
-    // Truncate address helper
-    function truncateAddress(address: string): string {
-        return `${address.slice(0, 4)}...${address.slice(-4)}`;
-    }
-    
-    // Extract resources from preview
-    function extractResourcesFromPreview(previewResult: any) {
-        try {
-            const resources = [];
-            
-            if (previewResult.resource_changes && Array.isArray(previewResult.resource_changes)) {
-                for (const changeGroup of previewResult.resource_changes) {
-                    if (changeGroup.resource_changes && Array.isArray(changeGroup.resource_changes)) {
-                        const firstChange = changeGroup.resource_changes[0];
-                        if (firstChange?.component_entity?.entity_type?.includes('Account')) {
-                            for (const change of changeGroup.resource_changes) {
-                                if (change.resource_address && change.amount) {
-                                    const amount = parseFloat(change.amount);
-                                    if (amount > 0) {
-                                        resources.push({
-                                            resourceAddress: change.resource_address,
-                                            amount: amount
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            
-            return resources;
-        } catch (error) {
-            console.error('Error extracting resources from preview:', error);
-            return [];
-        }
-    }
-    
     // Load prices
     async function loadPrices() {
-        console.log('Starting to load prices...');
         isLoadingPrices = true;
-        
         try {
-            // Fetch XRD price
-            const xrdResponse = await fetch(`https://api.ociswap.com/tokens/${XRD}`);
-            const xrdData = await xrdResponse.json();
-            xrdPrice = xrdData?.price?.usd?.now || 0;
-            console.log('XRD Price:', xrdPrice);
-            
-            const testAmount = 1000;
-            const prices: Record<string, number> = {};
-            
-            // Get all prices
-            for (const pool of ALL_POOLS) {
-                try {
-                    const testAccount = selectedAccount || "account_rdx128dtethfy8ujrsfdztemyjk0kvhnah6dafr57frz85dcw2c8z0td87";
-                    
-                    const manifest = `
-CALL_METHOD
-    Address("${testAccount}")
-    "lock_fee"
-    Decimal("10")
-;
-CALL_METHOD
-    Address("${testAccount}")
-    "withdraw"
-    Address("${XRD}")
-    Decimal("${testAmount}")
-;
-TAKE_ALL_FROM_WORKTOP
-    Address("${XRD}")
-    Bucket("xrd_bucket")
-;
-CALL_METHOD
-    Address("${pool.address}")
-    "swap"
-    Bucket("xrd_bucket")
-;
-CALL_METHOD
-    Address("${testAccount}")
-    "deposit_batch"
-    Expression("ENTIRE_WORKTOP")
-;`;
-                    
-                    const response = await fetch('https://mainnet.radixdlt.com/transaction/preview', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            manifest,
-                            start_epoch_inclusive: 0,
-                            end_epoch_exclusive: 99,
-                            notary_is_signatory: false,
-                            tip_percentage: 0,
-                            nonce: 2,
-                            signer_public_keys: [],
-                            flags: {
-                                use_free_credit: true,
-                                assume_all_signature_proofs: true,
-                                skip_epoch_check: true
-                            }
-                        })
-                    });
-                    
-                    const result = await response.json();
-                    const resources = extractResourcesFromPreview(result);
-                    const tokenResource = resources.find(r => r.resourceAddress === pool.token1);
-                    
-                    if (tokenResource && tokenResource.amount > 0) {
-                        const tokenPriceInXrd = testAmount / tokenResource.amount;
-                        const tokenPriceInUsd = tokenPriceInXrd * xrdPrice;
-                        prices[pool.address] = tokenPriceInUsd;
-                        console.log(`${pool.name}: $${tokenPriceInUsd.toFixed(4)}`);
-                    }
-                    
-                } catch (error) {
-                    console.error(`Error getting price for ${pool.name}:`, error);
-                }
-            }
-            
-            console.log('Setting prices:', prices);
-            poolPrices = prices;
-            
-        } catch (error) {
-            console.error('Error loading prices:', error);
+            xrdPrice = await getXrdPrice();
+            poolPrices = await loadPoolPrices(ALL_POOLS, selectedAccount);
         } finally {
             isLoadingPrices = false;
         }
-    }
-    
-    // Build arbitrage manifest
-    function buildArbitrageManifest(
-        accountAddress: string,
-        buyPool: Pool,
-        sellPool: Pool,
-        amount: number
-    ): string {
-        const intermediateToken = buyPool.token1;
-        
-        return `
-CALL_METHOD
-    Address("${accountAddress}")
-    "withdraw"
-    Address("${XRD}")
-    Decimal("${amount}")
-;
-TAKE_ALL_FROM_WORKTOP
-    Address("${XRD}")
-    Bucket("xrd_bucket")
-;
-CALL_METHOD
-    Address("${buyPool.address}")
-    "swap"
-    Bucket("xrd_bucket")
-;
-TAKE_ALL_FROM_WORKTOP
-    Address("${intermediateToken}")
-    Bucket("token_bucket")
-;
-CALL_METHOD
-    Address("${sellPool.address}")
-    "swap"
-    Bucket("token_bucket")
-;
-CALL_METHOD
-    Address("${accountAddress}")
-    "deposit_batch"
-    Expression("ENTIRE_WORKTOP")
-;`;
     }
     
     // Handle pool selection
@@ -297,40 +92,7 @@ CALL_METHOD
                 xrdAmount
             );
             
-            const response = await fetch('https://mainnet.radixdlt.com/transaction/preview', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    manifest,
-                    start_epoch_inclusive: 0,
-                    end_epoch_exclusive: 99,
-                    notary_is_signatory: false,
-                    tip_percentage: 0,
-                    nonce: 2,
-                    signer_public_keys: [],
-                    flags: {
-                        use_free_credit: true,
-                        assume_all_signature_proofs: true,
-                        skip_epoch_check: true
-                    }
-                })
-            });
-            
-            const result = await response.json();
-            const resources = extractResourcesFromPreview(result);
-            const xrdResource = resources.find(r => r.resourceAddress === XRD);
-            const xrdReturned = xrdResource ? xrdResource.amount : 0;
-            
-            // Fix: Extract fee from fee_summary
-            const txFees = result.fee_summary?.execution_cost_sum 
-                ? parseFloat(result.fee_summary.execution_cost_sum) 
-                : 0;
-            
-            previewResult = {
-                xrdReturned,
-                txFees,
-                rawResult: result
-            };
+            previewResult = await previewArbitrageTransaction(manifest);
         } catch (error) {
             console.error('Error previewing transaction:', error);
         } finally {
@@ -366,31 +128,23 @@ CALL_METHOD
         }
     }
     
-    // Helper functions
+    // Helper function for pool price display
     function getPoolPrice(pool: Pool): string {
         const price = poolPrices[pool.address];
         return price ? `$${price.toFixed(4)}` : '--';
     }
     
+    // Helper function to check if pool is selected
     function isPoolSelected(pool: Pool): boolean {
         return (selectedBuyPool?.address === pool.address) || 
                (selectedSellPool?.address === pool.address);
     }
     
-    function getPoolSelectionType(pool: Pool): string {
+    // Helper function to get pool selection type
+    function getPoolSelectionType(pool: Pool): 'buy' | 'sell' | '' {
         if (selectedBuyPool?.address === pool.address) return 'buy';
         if (selectedSellPool?.address === pool.address) return 'sell';
         return '';
-    }
-    
-    function getTokenSymbol(address: string): string {
-        switch(address) {
-            case HUSDC: return 'hUSDC';
-            case HUSDT: return 'hUSDT';
-            case HETH: return 'hETH';
-            case HWBTC: return 'hWBTC';
-            default: return '';
-        }
     }
     
     // Load prices when wallet connects
@@ -419,7 +173,7 @@ CALL_METHOD
         </div>
     {:else}
         <div class="space-y-4" in:fade>
-            <!-- Compact Header -->
+            <!-- Header -->
             <div class="flex justify-between items-center">
                 <h1 class="text-2xl font-bold">Manual Arbitrage</h1>
                 <button 
@@ -437,7 +191,7 @@ CALL_METHOD
                 </button>
             </div>
             
-            <!-- Selection Area with larger Icons -->
+            <!-- Selection Area -->
             <div class="card p-3 variant-soft-surface">
                 <div class="grid grid-cols-1 lg:grid-cols-7 gap-3 items-center">
                     <!-- Buy From -->
@@ -512,7 +266,7 @@ CALL_METHOD
                 </div>
             </div>
             
-            <!-- Transaction Preview with USD values -->
+            <!-- Transaction Preview -->
             {#if selectedBuyPool && selectedSellPool && previewResult}
                 <div class="card p-3 variant-soft-{profit > 0 ? 'success' : 'error'}" in:fade>
                     <div class="flex justify-between items-center">
@@ -553,13 +307,13 @@ CALL_METHOD
                 </div>
             {/if}
             
-            <!-- Pool Grid with larger icons and prices -->
+            <!-- Pool Grids -->
             <div class="space-y-3">
                 <!-- hUSDC Pools -->
                 <div class="card p-3 variant-soft-surface">
                     <div class="flex items-center gap-2 mb-2">
                         <img src={TOKEN_ICONS[HUSDC]} alt="hUSDC" class="w-6 h-6" />
-                        <span class="font-semibold text-base">{getTokenSymbol(HUSDC)} Pools</span>
+                        <span class="font-semibold text-base">hUSDC Pools</span>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
                         {#each husdcPools as pool}
@@ -571,31 +325,26 @@ CALL_METHOD
                                             : 'bg-tertiary-500/20 border-tertiary-500'
                                         : 'bg-surface-700 border-surface-600 hover:border-surface-500'}"
                                 on:click={() => selectPool(pool)}
-                                disabled={selectedBuyPool && selectedSellPool && !isPoolSelected(pool)}
+                                disabled={!!(selectedBuyPool && selectedSellPool && !isPoolSelected(pool))}
                             >
                                 <div class="flex items-center justify-between gap-2">
-                                    <!-- DEX Icon - 2x bigger -->
                                     <img src={DEX_ICONS[pool.dex]} alt={pool.dex} class="w-12 h-12 flex-shrink-0" />
                                     
-                                    <!-- Token Pair Icons - 2x bigger -->
                                     <div class="flex gap-1 flex-shrink-0">
                                         <img src={TOKEN_ICONS[XRD]} alt="XRD" class="w-8 h-8" />
                                         <img src={TOKEN_ICONS[pool.token1]} alt="Token" class="w-8 h-8" />
                                     </div>
                                     
-                                    <!-- Price - 2x bigger -->
                                     <div class="text-right flex-1">
                                         <div class="text-2xl font-bold">
-                                            {#if poolPrices[pool.address]}
-                                                ${poolPrices[pool.address].toFixed(3)}
-                                            {:else}
-                                                <span class="text-gray-500">--</span>
-                                            {/if}
+                                            {poolPrices[pool.address] ? `$${poolPrices[pool.address].toFixed(3)}` : '--'}
+                                        </div>
+                                        <div class="text-xs text-gray-500">
+                                            {pool.name.includes('Simple') ? 'Simple' : pool.name.includes('Shape') ? 'Shape' : ''}
                                         </div>
                                     </div>
                                 </div>
                                 
-                                <!-- Component Address -->
                                 <div class="text-xs text-gray-500 mt-2">{truncateAddress(pool.address)}</div>
                                 
                                 {#if isPoolSelected(pool)}
@@ -609,11 +358,14 @@ CALL_METHOD
                     </div>
                 </div>
                 
+                <!-- Similar blocks for hUSDT, hETH, hWBTC -->
+                <!-- I'll keep these the same as before since they were working -->
+                
                 <!-- hUSDT Pools -->
                 <div class="card p-3 variant-soft-surface">
                     <div class="flex items-center gap-2 mb-2">
                         <img src={TOKEN_ICONS[HUSDT]} alt="hUSDT" class="w-6 h-6" />
-                        <span class="font-semibold text-base">{getTokenSymbol(HUSDT)} Pools</span>
+                        <span class="font-semibold text-base">hUSDT Pools</span>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
                         {#each husdtPools as pool}
@@ -625,31 +377,26 @@ CALL_METHOD
                                             : 'bg-tertiary-500/20 border-tertiary-500'
                                         : 'bg-surface-700 border-surface-600 hover:border-surface-500'}"
                                 on:click={() => selectPool(pool)}
-                                disabled={selectedBuyPool && selectedSellPool && !isPoolSelected(pool)}
+                                disabled={!!(selectedBuyPool && selectedSellPool && !isPoolSelected(pool))}
                             >
                                 <div class="flex items-center justify-between gap-2">
-                                    <!-- DEX Icon - 2x bigger -->
                                     <img src={DEX_ICONS[pool.dex]} alt={pool.dex} class="w-12 h-12 flex-shrink-0" />
                                     
-                                    <!-- Token Pair Icons - 2x bigger -->
                                     <div class="flex gap-1 flex-shrink-0">
                                         <img src={TOKEN_ICONS[XRD]} alt="XRD" class="w-8 h-8" />
                                         <img src={TOKEN_ICONS[pool.token1]} alt="Token" class="w-8 h-8" />
                                     </div>
                                     
-                                    <!-- Price - 2x bigger -->
                                     <div class="text-right flex-1">
                                         <div class="text-2xl font-bold">
-                                            {#if poolPrices[pool.address]}
-                                                ${poolPrices[pool.address].toFixed(3)}
-                                            {:else}
-                                                <span class="text-gray-500">--</span>
-                                            {/if}
+                                            {poolPrices[pool.address] ? `$${poolPrices[pool.address].toFixed(3)}` : '--'}
+                                        </div>
+                                        <div class="text-xs text-gray-500">
+                                            {pool.name.includes('Simple') ? 'Simple' : pool.name.includes('Shape') ? 'Shape' : ''}
                                         </div>
                                     </div>
                                 </div>
                                 
-                                <!-- Component Address -->
                                 <div class="text-xs text-gray-500 mt-2">{truncateAddress(pool.address)}</div>
                                 
                                 {#if isPoolSelected(pool)}
@@ -667,7 +414,7 @@ CALL_METHOD
                 <div class="card p-3 variant-soft-surface">
                     <div class="flex items-center gap-2 mb-2">
                         <img src={TOKEN_ICONS[HETH]} alt="hETH" class="w-6 h-6" />
-                        <span class="font-semibold text-base">{getTokenSymbol(HETH)} Pools</span>
+                        <span class="font-semibold text-base">hETH Pools</span>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
                         {#each hethPools as pool}
@@ -679,31 +426,26 @@ CALL_METHOD
                                             : 'bg-tertiary-500/20 border-tertiary-500'
                                         : 'bg-surface-700 border-surface-600 hover:border-surface-500'}"
                                 on:click={() => selectPool(pool)}
-                                disabled={selectedBuyPool && selectedSellPool && !isPoolSelected(pool)}
+                                disabled={!!(selectedBuyPool && selectedSellPool && !isPoolSelected(pool))}
                             >
                                 <div class="flex items-center justify-between gap-2">
-                                    <!-- DEX Icon - 2x bigger -->
                                     <img src={DEX_ICONS[pool.dex]} alt={pool.dex} class="w-12 h-12 flex-shrink-0" />
                                     
-                                    <!-- Token Pair Icons - 2x bigger -->
                                     <div class="flex gap-1 flex-shrink-0">
                                         <img src={TOKEN_ICONS[XRD]} alt="XRD" class="w-8 h-8" />
                                         <img src={TOKEN_ICONS[pool.token1]} alt="Token" class="w-8 h-8" />
                                     </div>
                                     
-                                    <!-- Price - 2x bigger -->
                                     <div class="text-right flex-1">
                                         <div class="text-2xl font-bold">
-                                            {#if poolPrices[pool.address]}
-                                                ${poolPrices[pool.address].toFixed(3)}
-                                            {:else}
-                                                <span class="text-gray-500">--</span>
-                                            {/if}
+                                            {poolPrices[pool.address] ? `$${poolPrices[pool.address].toFixed(3)}` : '--'}
+                                        </div>
+                                        <div class="text-xs text-gray-500">
+                                            {pool.name.includes('Simple') ? 'Simple' : pool.name.includes('Shape') ? 'Shape' : ''}
                                         </div>
                                     </div>
                                 </div>
                                 
-                                <!-- Component Address -->
                                 <div class="text-xs text-gray-500 mt-2">{truncateAddress(pool.address)}</div>
                                 
                                 {#if isPoolSelected(pool)}
@@ -721,7 +463,7 @@ CALL_METHOD
                 <div class="card p-3 variant-soft-surface">
                     <div class="flex items-center gap-2 mb-2">
                         <img src={TOKEN_ICONS[HWBTC]} alt="hWBTC" class="w-6 h-6" />
-                        <span class="font-semibold text-base">{getTokenSymbol(HWBTC)} Pools</span>
+                        <span class="font-semibold text-base">hWBTC Pools</span>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
                         {#each hwbtcPools as pool}
@@ -733,31 +475,26 @@ CALL_METHOD
                                             : 'bg-tertiary-500/20 border-tertiary-500'
                                         : 'bg-surface-700 border-surface-600 hover:border-surface-500'}"
                                 on:click={() => selectPool(pool)}
-                                disabled={selectedBuyPool && selectedSellPool && !isPoolSelected(pool)}
+                                disabled={!!(selectedBuyPool && selectedSellPool && !isPoolSelected(pool))}
                             >
                                 <div class="flex items-center justify-between gap-2">
-                                    <!-- DEX Icon - 2x bigger -->
                                     <img src={DEX_ICONS[pool.dex]} alt={pool.dex} class="w-12 h-12 flex-shrink-0" />
                                     
-                                    <!-- Token Pair Icons - 2x bigger -->
                                     <div class="flex gap-1 flex-shrink-0">
                                         <img src={TOKEN_ICONS[XRD]} alt="XRD" class="w-8 h-8" />
                                         <img src={TOKEN_ICONS[pool.token1]} alt="Token" class="w-8 h-8" />
                                     </div>
                                     
-                                    <!-- Price - 2x bigger -->
                                     <div class="text-right flex-1">
                                         <div class="text-2xl font-bold">
-                                            {#if poolPrices[pool.address]}
-                                                ${poolPrices[pool.address].toFixed(3)}
-                                            {:else}
-                                                <span class="text-gray-500">--</span>
-                                            {/if}
+                                            {poolPrices[pool.address] ? `$${poolPrices[pool.address].toFixed(3)}` : '--'}
+                                        </div>
+                                        <div class="text-xs text-gray-500">
+                                            {pool.name.includes('Simple') ? 'Simple' : pool.name.includes('Shape') ? 'Shape' : ''}
                                         </div>
                                     </div>
                                 </div>
                                 
-                                <!-- Component Address -->
                                 <div class="text-xs text-gray-500 mt-2">{truncateAddress(pool.address)}</div>
                                 
                                 {#if isPoolSelected(pool)}
@@ -766,6 +503,39 @@ CALL_METHOD
                                         {getPoolSelectionType(pool).toUpperCase()}
                                     </div>
                                 {/if}
+                            </button>
+                        {/each}
+                    </div>
+                </div>
+                
+                <!-- hUSDC/hUSDT Stable Pool -->
+                <div class="card p-3 variant-soft-surface">
+                    <div class="flex items-center gap-2 mb-2">
+                        <img src={TOKEN_ICONS[HUSDC]} alt="hUSDC" class="w-6 h-6" />
+                        <img src={TOKEN_ICONS[HUSDT]} alt="hUSDT" class="w-6 h-6" />
+                        <span class="font-semibold text-base">hUSDC/hUSDT Pools</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+                        {#each ALL_POOLS.filter(p => (p.token0 === HUSDC && p.token1 === HUSDT) || (p.token0 === HUSDT && p.token1 === HUSDC)) as pool}
+                            <button
+                                class="p-3 rounded-lg border transition-all bg-surface-700 border-surface-600"
+                                disabled={true}
+                            >
+                                <div class="flex items-center justify-between gap-2">
+                                    <img src={DEX_ICONS[pool.dex]} alt={pool.dex} class="w-12 h-12 flex-shrink-0" />
+                                    
+                                    <div class="flex gap-1 flex-shrink-0">
+                                        <img src={TOKEN_ICONS[pool.token0]} alt="" class="w-8 h-8" />
+                                        <img src={TOKEN_ICONS[pool.token1]} alt="" class="w-8 h-8" />
+                                    </div>
+                                    
+                                    <div class="text-right flex-1">
+                                        <div class="text-2xl font-bold">--</div>
+                                        <div class="text-xs text-gray-500">Shape</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-xs text-gray-500 mt-2">{truncateAddress(pool.address)}</div>
                             </button>
                         {/each}
                     </div>
